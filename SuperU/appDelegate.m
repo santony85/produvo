@@ -17,7 +17,7 @@
 #import "DetailProdViewController.h"
 
 #import "newApiConnect.h"
-
+#import "Reachability.h"
 
 
 #define USE_LOCATION
@@ -59,14 +59,30 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
     NSUserDefaults *prefs  = [NSUserDefaults standardUserDefaults];
     
+    [prefs setInteger:0 forKey:@"isback"];
+    
+   // [prefs setInteger:0 forKey:@"numversion"];
+    /*
+    
+    //verif connection au reseau
+    
     newApiConnect *connect = [[newApiConnect alloc] init];
+    
+    Reachability *networkReachability = [Reachability reachabilityForInternetConnection];
+    NetworkStatus networkStatus = [networkReachability currentReachabilityStatus];
+    if (networkStatus == NotReachable) {
+        NSLog(@"There IS NO internet connection");
+    } else {
+        NSLog(@"There IS internet connection");
+    }
+    
     NSMutableArray *tmparr = [connect getAll :@"version" :0];
     NSInteger myInt = [prefs integerForKey:@"numversion"];
     if([[[tmparr objectAtIndex:0] objectForKey:@"numversion"] integerValue] > myInt)[connect getAll :@"vehicule" :1];
     [prefs setInteger:[[[tmparr objectAtIndex:0] objectForKey:@"numversion"] integerValue] forKey:@"numversion"];
     
     
-    
+    */
     
     UIWindow *alertWindow = [[UIWindow alloc] initWithFrame:self.window.bounds]; // you must release the window somewhere, when you do not need it anymore
     alertWindow.windowLevel     = UIWindowLevelAlert; // puts it above the status bar

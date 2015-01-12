@@ -42,6 +42,7 @@
 @property (weak, nonatomic)   IBOutlet UIImageView *favImg;
 
 
+@property (weak, nonatomic) IBOutlet UITextField *editPrix;
 
 
 //@property (nonatomic) int idFav;

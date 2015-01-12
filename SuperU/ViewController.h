@@ -26,7 +26,7 @@
 
 #import <UIKit/UIKit.h>
 #import "SWTableViewCell.h"
-
+#import "BBBadgeBarButtonItem.h"
 
 @interface ViewController : UIViewController<UISearchBarDelegate,UITableViewDelegate, UITableViewDataSource, SWTableViewCellDelegate>
 
@@ -52,7 +52,13 @@
 - (IBAction)aana:(id)sender;
 - (IBAction)aand:(id)sender;
 
+- (IBAction)affPrix:(id)sender;
+
+- (IBAction)affSelection:(id)sender;
+- (IBAction)delSelection:(id)sender;
+
 @property (strong, nonatomic) IBOutlet UIButton *button;
 @property (nonatomic, retain) IBOutlet UISearchBar *theSearchBar;
+@property (nonatomic, retain) IBOutlet BBBadgeBarButtonItem *btRight;
 
 @end

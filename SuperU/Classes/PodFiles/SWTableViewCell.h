@@ -52,4 +52,6 @@ typedef NS_ENUM(NSInteger, SWCellState)
 @property (nonatomic)  int idFav;
 @property (nonatomic)  int idFav2;
 
+@property (nonatomic)  NSString *idVehicule;
+
 @end

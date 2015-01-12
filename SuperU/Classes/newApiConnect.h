@@ -10,11 +10,18 @@
 #import <UIKit/UIKit.h>
 #import <CoreLocation/CoreLocation.h>
 
-@interface newApiConnect : NSObject
+@protocol newApiConnectDelegate;
 
--(NSMutableArray *)getLogin :(NSString *)collection :(NSString *)login :(NSString *)mdp;
 
--(NSMutableArray *)getAll :(NSString *)collection:(int)save;//replace Global
+
+
+
+
+@interface newApiConnect : UIView
+
+-(NSMutableArray *)getLogin   :(NSString *)collection :(NSString *)login :(NSString *)mdp;
+
+-(NSMutableArray *)getAll     :(NSString *)collection:(int)save;//replace Global
 -(NSMutableArray *)getAllFile :(NSString *)collection;//replace Global
 
 //find
@@ -23,4 +30,20 @@
 -(NSMutableArray *)getListSorted :(NSString *)collection :(NSMutableArray *)catlst :(NSString *)champ :(Boolean)asc;
 -(NSMutableArray *)getListText :(NSString *)collection :(NSMutableArray *)catlst :(NSString *)champ;
 
+
+-(NSMutableArray *)getListTmp : (NSString *)collection : (NSMutableArray *)catlst : (NSMutableArray *)dictCat;
+-(NSMutableArray *)getListFinal : (NSString *)collection : (NSMutableArray *)catlst : (NSMutableArray *)dictCat;
+
+-(NSString *)postUnit :(NSString *)collection :(NSDictionary *)data;
+-(NSMutableArray *)getVendeur :(NSString *)collection :(NSString *)idp;
+
+@property (nonatomic, retain)  id <newApiConnectDelegate> delegate;
+
+@end
+
+
+@protocol newApiConnectDelegate <NSObject>
+-(void)endDownload;
+-(void)nbImage:(int)nbImages;
+-(void)stepImage;
 @end

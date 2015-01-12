@@ -38,6 +38,8 @@
 // Table cells
 #import "JBParallaxCell.h"
 #import "newApiConnect.h"
+#import "selectionViewController.h"
+#import "BBBadgeBarButtonItem.h"
 
 
 
@@ -59,6 +61,7 @@
     NSMutableArray *energielst;
     int poscollapse;
     int isSel;
+    int isPrix;
     int oldpos;
     
     NSMutableArray *favorislst;
@@ -79,7 +82,7 @@
 {
     [super viewDidLoad];
 
-
+    isPrix=0;
     
     poscollapse =0;
     isSel  = 0;
@@ -87,12 +90,24 @@
     
     connect = [[newApiConnect alloc] init];
     
+    
+
+    
+    //_login.text = [prefs objectForKey:@"login"];
+    //_mdp.text  = [prefs objectForKey:@"mdp"];
+
+    
+    
+    
+    //[favorislst addObject:@"66385844493"];
+    //[favorislst addObject:@"111379524493"];
+    
     favorislst = [[NSMutableArray alloc] init];
     
     ODRefreshControl *refreshControl = [[ODRefreshControl alloc] initInScrollView:self.tableView];
     
     [refreshControl addTarget:self action:@selector(dropViewDidBeginRefreshing:) forControlEvents:UIControlEventValueChanged];
-    [mappDelegate unHideLoader];
+    //[mappDelegate unHideLoader];
     self.useCustomCells = NO;
     isLstFav =0;
     
@@ -105,7 +120,20 @@
   [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"bkbar.png"] forBarMetrics:UIBarMetricsDefault];
   self.navigationController.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName : [UIColor whiteColor]};
     
-    //[self.theSearchBar becomeFirstResponder];
+    self.btRight.badgeBGColor   = [UIColor redColor];
+    self.btRight.badgeTextColor = [UIColor whiteColor];
+    self.btRight.badgeFont      = [UIFont systemFontOfSize:12.0];
+    self.btRight.badgePadding   = 6;
+    self.btRight.badgeMinSize   = 8;
+    self.btRight.badgeOriginX   = 38;
+    self.btRight.badgeOriginY   = -6;
+    self.btRight.shouldHideBadgeAtZero = YES;
+    self.btRight.shouldAnimateBadge = YES;
+    
+    self.btRight.badgeValue=[NSString stringWithFormat:@"%d",[favorislst count] ];
+    
+    
+    [self getData];
 }
 
 - (BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar
@@ -182,20 +210,40 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-        [self scrollViewDidScroll:nil];
-    [self getData];
+    [self scrollViewDidScroll:nil];
+    NSUserDefaults *prefs  = [NSUserDefaults standardUserDefaults];
+    int isBack = [prefs integerForKey:@"isback"];
+    if(isBack == 1){
+        favorislst = [prefs objectForKey:@"favlst"];
+        self.btRight.badgeValue=[NSString stringWithFormat:@"%d",[favorislst count] ];
+        [self.tableView reloadData];
+    }
+    else if(isBack == 2){
+        readlst = [prefs objectForKey:@"reclst"];
+        [self.tableView reloadData];
+    }
+
+    /*else {
+        favorislst = [[NSMutableArray alloc] init];
+        [self getData];
+    }*/
+    
+    [prefs setInteger:0 forKey:@"isback"];
+    [prefs setObject:[[NSMutableArray alloc] init] forKey:@"favlst"];
+    [prefs setObject:[[NSMutableArray alloc] init] forKey:@"reclst"];
+    
     
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    //[loader    hideme];
+    [mappDelegate unLoader];
     //[self.theSearchBar resignFirstResponder];
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSInteger myInt = [prefs integerForKey:@"isNewPromo"];
     if(myInt==0){
-        [mappDelegate unHideLoader];
+        //[mappDelegate unHideLoader];
     }
 
 
@@ -251,8 +299,10 @@
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-
-    if(indexPath.row==poscollapse)return 130;
+    NSLog(@"idRow -> %d poscollapse = %d",indexPath.row,poscollapse);
+    
+   
+    if(indexPath.row==poscollapse)return 130;//poscollapse
     else return 33;
 }
 
@@ -273,7 +323,8 @@
     cell.catTitle.text = ref;
     cell.catTitle.textColor = [UIColor whiteColor];
     
-    cell.prix.text = [NSString stringWithFormat:@"Prix : %@ €",[[readlst objectAtIndex:indexPath.row] objectForKey:@"PrixVenteTTC"]];
+    if(isPrix==0)cell.prix.text = [NSString stringWithFormat:@"Prix : %@ €",[[readlst objectAtIndex:indexPath.row] objectForKey:@"PrixVenteTTC"]];
+    else cell.prix.text = @"Prix : N.C";
     
     if(indexPath.row %2 !=0){
        cell.bkLabel.backgroundColor = [UIColor colorWithRed:(36/255.0) green:(76/255.0) blue:(138/255.0) alpha:1];
@@ -295,54 +346,99 @@
     NSArray *myArray = [nbp componentsSeparatedByString:@"|"];
 
     
+    //NSLog(@"%@",[[readlst objectAtIndex:indexPath.row] objectForKey:@"IdentifiantVehicule"]);
+    
     cell.image.image = [self loadImage:[myArray objectAtIndex:0] ofType:@"jpg" inDirectory:documentsDirectoryPath];
+    cell.idVehicule = [[readlst objectAtIndex:indexPath.row] objectForKey:@"IdentifiantVehicule"];
     
+    NSDictionary* dict = [NSDictionary dictionaryWithObjects:favorislst
+                                                     forKeys:[favorislst valueForKey:@"IdentifiantVehicule"]];
+    NSArray *produitsSectionTitles = [[dict allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
     
-    /*if([idFav count]>0){
-        NSFavoris *favoris = [[NSFavoris alloc] init];
-        favoris = [idFav objectAtIndex:0];
-        cell.favImg.hidden = NO;
-        [cell setRightUtilityButtons:[self DelButtons] WithButtonWidth:90.0f];
-        cell.tag = 1;
-        cell.idFav = [favoris.idFav  intValue];
-        cell.idFav2 = 1;
-        
-    }
-    else {*/
-        [cell setRightUtilityButtons:[self AddButtons] WithButtonWidth:90.0f];
-    //}
+    int myIndex = -1;
+    
+    if(favorislst.count)myIndex = [produitsSectionTitles indexOfObject: [[readlst objectAtIndex:indexPath.row] objectForKey:@"IdentifiantVehicule"]];
 
+    
+    NSLog(@"%d",myIndex);
+    cell.idFav = myIndex;
+    
+    if (myIndex >= 0 ){
+      cell.favImg.hidden = NO;
+      [cell setRightUtilityButtons:[self DelButtons] WithButtonWidth:90.0f];
+      }
+    else {
+      cell.favImg.hidden = YES;
+      [cell setRightUtilityButtons:[self AddButtons] WithButtonWidth:90.0f];
+        
+      }
     
     cell.delegate = self;
     
     cell.tag = indexPath.row;
+    
+    //cell.catTitle.text =  [NSString stringWithFormat:@"indrow %d",indexPath.row];
+    
     return cell;
 }
 
 
-
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    NSLog(@"Fin...");
+    NSArray *visibleCells = [self.tableView visibleCells];
+    int ii=0;
+    int ctag=0;
+    for (JBParallaxCell *cell in visibleCells) {
+        if(ii==0){
+            NSLog(@"tag = %ld  nb = %lu",(long)cell.tag,(unsigned long)[visibleCells count]);
+            ctag = cell.tag;
+        }
+        ii++;
+    }
+    
+    
+    poscollapse=ctag ;
+    
+    NSIndexPath *path = [NSIndexPath indexPathForRow:ctag inSection:0];
+    [self.tableView beginUpdates];
+    NSArray *indexPaths = [[NSArray alloc] initWithObjects:path, nil];
+    [self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+    [self.tableView endUpdates];
+    [self.tableView scrollToRowAtIndexPath:path atScrollPosition:UITableViewScrollPositionTop animated:NO];
+    
+}
 
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     // Get visible cells on table view.
+    //18 pour 7
+    
     NSArray *visibleCells = [self.tableView visibleCells];
 
     for (JBParallaxCell *cell in visibleCells) {
         [cell cellOnTableView:self.tableView didScrollOnView:self.view];
         cell.catTitle.textColor = [UIColor whiteColor];
     }
-    
-     poscollapse=0 ;
-    /*if(isSel==1){
-        poscollapse=0;
-        [self.tableView reloadData];
-    }
-    
-    isSel =0;*/
-    
+     //poscollapse=0 ;
 }
 
+- (IBAction)affPrix:(id)sender{
+    
+    if(isPrix==0)isPrix=1;
+    else isPrix=0;
+    
+    NSIndexPath *path = [_tableView indexPathForSelectedRow];
+    
+    //NSIndexPath *path = [NSIndexPath indexPathForRow:cell.tag inSection:0];
+    [self.tableView reloadData];
+    /*[self.tableView beginUpdates];
+    NSArray *indexPaths = [[NSArray alloc] initWithObjects:path, nil];
+    [self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+    [self.tableView endUpdates];*/
+
+}
 
 - (void)getData{
     
@@ -350,8 +446,8 @@
     
     readlst     = [connect getAllFile :@"vehicule"];
     initial     = [connect getAllFile :@"vehicule"];
-    marquelst   = [connect getListOf  :@"marque" :readlst];
-    energielst  = [connect getListOf  :@"EnergieLibelle" :readlst];
+    //marquelst   = [connect getListOf  :@"marque" :readlst];
+    //energielst  = [connect getListOf  :@"EnergieLibelle" :readlst];
 
     
     [self.tableView reloadData];
@@ -420,49 +516,6 @@
 }
 
 
-
-- (IBAction)SelectCategorie:(UIButton *)sender {
-    //_btRecherche.enabled = NO;
-    CGRect frame = sender.frame;
-    //frame.origin.x=25;
-    frame.origin.y=frame.origin.y+30;
-    //frame.size.height=100;
-    //frame.size.width=140;
-    [KxMenu showMenuInView:self.view
-                  fromRect:frame
-                 menuItems:menuItems2];
-}
-
--(void)listFavoris{
-    //prendre tout les fav
-    dataBase *sqlManager = [[dataBase alloc] initDatabase:0];
-    self.favArray = [[NSMutableArray alloc] init];
-    self.favArray = [sqlManager findAllFavoris];
-    readlst  = [[NSMutableArray alloc] init];
-    for(int i=0;i<[self.favArray count];i++)
-    {
-        
-        NSFavoris *favoris = [[NSFavoris alloc] init];
-        favoris = [self.favArray objectAtIndex:i];
-        int number = [favoris.idFav intValue];
-     
- 
-     
-        apiconnect *connect = [[apiconnect alloc] init];
-        NSMutableArray* tmp = [connect getUnit :@"promosu"    :favoris.idProd];
-     
-        NSLog(@"%@",tmp);
-     
-        if([tmp count]>0)[readlst addObject:tmp];
-        else [sqlManager delData :number];
-    }
-    
-
-    
-    [self.tableView reloadData];
-    
-}
-
 - (IBAction)afftous:(id)sender {
   self.theSearchBar.text=@"";
     
@@ -471,25 +524,13 @@
     
 }
 
-- (IBAction)changeTypeAff:(id)sender {
-    if(isLstFav ==0){
-      isLstFav =1;
-        tmplst = readlst;
-      [self listFavoris];
-      [_button setImage:[UIImage imageNamed:@"bullet4.png"] forState:UIControlStateNormal];
-      }
-    else {
-      //[mappDelegate unHideLoader];
-      readlst = tmplst;
-      isLstFav =0;
-      [_button setImage:[UIImage imageNamed:@"favorites3.png"] forState:UIControlStateNormal];
-      [self.tableView reloadData];
-      
-      //[self getData];
-      }
-  
+- (IBAction)delSelection:(id)sender{
+ favorislst = [[NSMutableArray alloc] init];
+ self.btRight.badgeValue=[NSString stringWithFormat:@"%d",[favorislst count] ];   
+ [self.tableView reloadData];
     
 }
+
 
 - (IBAction)pra:(id)sender {
 
@@ -503,7 +544,6 @@
     [self.tableView reloadData];
 }
 
-
 - (IBAction)aana:(id)sender {
     
     readlst     = [connect getListSorted :@"vehicule" :readlst :@"Annee" :NO];
@@ -516,7 +556,6 @@
     [self.tableView reloadData];
 }
 
-
 - (IBAction)kma:(id)sender {
     
     readlst     = [connect getListSorted :@"vehicule" :readlst :@"Kilometrage" :NO];
@@ -528,6 +567,27 @@
     //readlst     = [connect getListSorted :@"vehicule" :readlst :@"Kilometrage" :YES];
     readlst     = [connect getListText :@"vehicule" :readlst :@"C4"];
     [self.tableView reloadData];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    // Make sure your segue name in storyboard is the same as this line
+    if ([[segue identifier] isEqualToString:@"selectionview"])
+    {
+        // Get reference to the destination view controller
+        selectionViewController *vc = [segue destinationViewController];
+        
+        
+        vc.mdata = favorislst;
+        vc.cdata = readlst;
+        // Pass any objects to the view controller here, like...
+    }
+}
+
+
+- (IBAction)affSelection:(id)sender{
+    
+    [self performSegueWithIdentifier:@"selectionview" sender:self];
 }
 
 
@@ -572,33 +632,33 @@
 - (void)swipeableTableViewCell:(SWTableViewCell *)cell didTriggerRightUtilityButtonWithIndex:(NSInteger)index
 {
     
-    NSLog(@"%d",index);
+
     
     switch (index) {
         case 0:
         {
-            NSLog(@"More button was pressed");
-            /*NSIndexPath *path = [NSIndexPath indexPathForRow:cell.tag inSection:0];
-            JBParallaxCell *cell2  = (JBParallaxCell *)[self.tableView cellForRowAtIndexPath:path];
-            if(cell2.idFav2==1){
-              dataBase *sqlManager = [[dataBase alloc] initDatabase:0];
-              [sqlManager delData :cell2.idFav];
-              }
-            else {
-              dataBase *sqlManager = [[dataBase alloc] initDatabase:0];
-              int idFav = [sqlManager saveData:cell2.bkLabel.text];
-              }
-            
-
-            
             [cell hideUtilityButtonsAnimated:YES];
-            
-            [self.tableView reloadData];
-            
+            NSIndexPath *path = [NSIndexPath indexPathForRow:cell.tag inSection:0];
+            JBParallaxCell *cell2  = (JBParallaxCell *)[self.tableView cellForRowAtIndexPath:path];
+            NSLog(@"%d->%@",cell2.tag,cell2.idVehicule);
+            if(cell2.idFav>=0){
+              [favorislst removeObjectAtIndex:cell2.idFav];
+              }
+            else{
+              //[favorislst addObject:cell2.idVehicule];
+              [favorislst addObject:[readlst objectAtIndex:cell2.tag]];
+                
+              }
+            /*[self.tableView reloadData];*/
             [self.tableView beginUpdates];
              NSArray *indexPaths = [[NSArray alloc] initWithObjects:path, nil];
             [self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
-            [self.tableView endUpdates];*/
+            [self.tableView endUpdates];
+            
+
+
+            
+             self.btRight.badgeValue=[NSString stringWithFormat:@"%d",[favorislst count] ];
 
 
             break;

@@ -102,7 +102,7 @@
     NSArray *myArray = [nbp componentsSeparatedByString:@"|"];
     
     NSString *contentString = [[NSString alloc]
-                               initWithFormat:@"http://www.pro-du-vo.com/media/%@",[myArray objectAtIndex:0]];
+                               initWithFormat:@"http://www.planb-apps.com/produvo/media/%@",[myArray objectAtIndex:0]];
     
     NSLog(@"%@",contentString);
     
@@ -129,6 +129,8 @@
         
     }
    else*/
+    
+    
     
     _image.image = [self loadImage:[myArray objectAtIndex:0] ofType:@"jpg" inDirectory:documentsDirectoryPath];
     
@@ -180,7 +182,7 @@
     if([myArray count] > 1){
     for(int i=0;i<[myArray count];i++){
         NSString *strl = [[NSString alloc]
-                          initWithFormat:@"http://www.pro-du-vo.com/media/%@",[myArray objectAtIndex:i]];
+                          initWithFormat:@"http://www.planb-apps.com/produvo/media/%@",[myArray objectAtIndex:i]];
      NSURL * imageURL = [NSURL URLWithString:strl];
     // download the image asynchronously
     [self downloadImageWithURL:imageURL completionBlock:^(BOOL succeeded, UIImage *image) {

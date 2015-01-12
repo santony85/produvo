@@ -8,16 +8,15 @@
 
 #import "contactViewController.h"
 #import "GlobalV.h"
-#import "ViewControllerME.h"
+
 
 
 @interface contactViewController (){
-    CLLocationCoordinate2D coordinateArray[2];
-    MKPointAnnotation *annotationPoint;
-    int iNb;
+    NSString *sTel;
+    NSString *sMel;
+    NSString *sFax;
+    
 }
-
-
 @end
 
 @implementation contactViewController
@@ -46,7 +45,7 @@
 
 -(void)viewWillAppear:(BOOL) animated {
     [super viewWillAppear:animated];
-    self.navigationController.navigationBar.hidden = YES;
+   // self.navigationController.navigationBar.hidden = YES;
     //[self setTabBarVisible:YES animated:NO];
 }
 
@@ -58,59 +57,20 @@
     self.navigationController.navigationBar.hidden = YES;
     //[self setTabBarVisible:YES animated:NO];
     
-    self.locationManager = [[CLLocationManager alloc] init];
-    //self.locationManager.delegate = self;
-    if ([self.locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)]) {
-        //[self.locationManager performSelector:@selector(requestWhenInUseAuthorization)];
-        [self.locationManager requestWhenInUseAuthorization];
-    }
-    [self.locationManager startUpdatingLocation];
     
+    NSUserDefaults *prefs  = [NSUserDefaults standardUserDefaults];
+    NSDictionary *readlst = [prefs objectForKey:@"vendeurlst"];
+    NSLog(@"%@",readlst);
     
-    //CGRect frame = self.btTel.frame;
-    //NSLog(@"%f * %f",frame.size.width,frame.size.height);
-    //frame.origin.y = frame.origin.y+20;
-    //UIButton *myButton = [UIButton buttonWithType: UIButtonTypeRoundedRect];
-    //[myButton setTitle:[NSString stringWithFormat:@"hello"] forState:UIControlStateNormal];
-    //[myButton setFrame: frame];
-    [self.btTel.titleLabel setFont: [UIFont boldSystemFontOfSize:40.0]];
-    self.btTel.titleLabel.adjustsFontSizeToFitWidth = TRUE;
-    //[self.btTel sizeToFit];
-    self.btTel.titleLabel.minimumFontSize = 12;
-    
-    //[myButton setTitleColor:[UIColor blueColor]
-               //        forState:UIControlStateNormal];
-    //myButton.frame = CGRectInset(myButton.frame, 64, 0);
-    
-   // [myButton addTarget:self action:@selector(tel:) forControlEvents:UIControlEventTouchUpInside];
-   // [_actionView addSubview:myButton];
-    
-    
-    CLLocationCoordinate2D annotationCoord;
-    
-    annotationCoord.latitude = maplatitude;
-    annotationCoord.longitude = maplongitude;
-    
-    annotationPoint = [[MKPointAnnotation alloc] init];
-    annotationPoint.coordinate = annotationCoord;
-    annotationPoint.title = maptitle;
-    annotationPoint.subtitle = mapsubtitle;
-    [_mapView addAnnotation:annotationPoint];
-    _mapView.centerCoordinate = annotationPoint.coordinate;
-    _mapView.delegate =self;
-    coordinateArray[0] = CLLocationCoordinate2DMake(maplatitude, maplongitude);
+    NSString *txt = [NSString stringWithFormat:@"%@\r\n%@\r\n%@\r\n%@\r\n%@",[readlst  objectForKey:@"nom"],[readlst  objectForKey:@"adresse"],[readlst  objectForKey:@"email"],[readlst  objectForKey:@"tel"],[readlst  objectForKey:@"tel"]  ];
+    NSLog(@"%@",txt);
+    message.text = txt;
+    sTel = [[readlst  objectForKey:@"tel"] stringByReplacingOccurrencesOfString:@"." withString:@""];
+    sMel = [readlst  objectForKey:@"email"];
+    sFax = [[readlst  objectForKey:@"fax"] stringByReplacingOccurrencesOfString:@"." withString:@""];
     
 }
 
-- (void)mapView:(MKMapView *)mv didAddAnnotationViews:(NSArray *)views
-{
-    
-    MKAnnotationView *annotationView = [views objectAtIndex:0];
-    id<MKAnnotation> mp = [annotationView annotation];
-    MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance([mp coordinate] ,100500,100500);
-    annotationView.selected =YES;
-    [mv setRegion:region animated:YES];
-}
 
 
 - (void)didReceiveMemoryWarning
@@ -120,7 +80,7 @@
 }
 
 - (IBAction)tel:(id)sender {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"telprompt://%@", @"0251560206"]]];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"telprompt://%@", sTel]]];
     
 }
 
@@ -133,16 +93,7 @@
 		{
 			[self displayComposerSheet];
 		}
-		else
-		{
-			[self launchMailAppOnDevice];
-		}
 	}
-	else
-	{
-		[self launchMailAppOnDevice];
-	}
-    
     
 }
 
@@ -178,12 +129,12 @@
 	MFMailComposeViewController *picker = [[MFMailComposeViewController alloc] init];
 	picker.mailComposeDelegate = self;
 	
-	[picker setSubject:[NSString stringWithFormat:@"contact appli Hyper U Luçon"]];//appliNom
+	[picker setSubject:[NSString stringWithFormat:@"contact appli Pro-Du-Vo"]];//appliNom
     
 	
     
 	// Set up recipients
-	NSArray *toRecipients = [NSArray arrayWithObject:appliEmail]; //contact@canberra-olona.fr
+	NSArray *toRecipients = [NSArray arrayWithObject:sMel]; //contact@canberra-olona.fr
     
 	//NSArray *bccRecipients = [NSArray arrayWithObject:@"fourth@example.com"];
 	
@@ -199,6 +150,9 @@
 	// Fill out the email body text
 	NSString *emailBody = @"";
 	[picker setMessageBody:emailBody isHTML:NO];
+    
+    
+    
 	
 	[self presentModalViewController:picker animated:YES];
     //[picker release];
@@ -235,34 +189,6 @@
 #pragma mark -
 #pragma mark Workaround
 
-// Launches the Mail application on the device.
--(void)launchMailAppOnDevice
-{
-	NSString *recipients = [NSString stringWithFormat:@"mailto:%@&subject=contact appli %@",appliEmail, @"Hyper U Luçon"];
-    //?cc=welcome@planbmobile.fr
-    
-	NSString *body = @"&body=";
-	
-	NSString *email = [NSString stringWithFormat:@"%@%@", recipients, body];
-	email = [email stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-	
-	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:email]];
-}
-- (IBAction)affME:(id)sender{
-    self.navigationController.navigationBar.hidden = NO;
-    
-    
-    //destViewController.hidesBottomBarWhenPushed = YES;
-    //[self.navigationController pushViewController:[[ViewControllerME alloc] init] animated:YES];
-    
-    ViewControllerME *controller = [[ViewControllerME alloc] init];
-    
-    // This is the line! :)
-    controller.hidesBottomBarWhenPushed = YES;
-    
-    [self.navigationController pushViewController:controller animated:YES];
-    
-}
 
 
 
